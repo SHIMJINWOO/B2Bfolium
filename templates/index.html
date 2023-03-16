@@ -1,28 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css" />
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" integrity="sha512-d2Mwxpb1FvO1bDzZJNtHy5oqZ5p5+deV93ocldor9fl8rrqJAr67c6sd11ZzxnFnsQ8do16RtmxJEtTSoTgMg==" crossorigin=""/>
-
-    <title>SpidorStoreMap</title>
-
+    <meta charset="utf-8">
+    <title>Map Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{ map.js }}
+    {{ map.css }}
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='leaflet-search.min.css') }}" />
+    <script src="{{ url_for('static', filename='leaflet-search.min.js') }}"></script>
 </head>
-<body>
-    <h1>Spidor Store Map</h1>
-    <form action="/find_store" method="post">
-        <label for="address">Enter your address:</label>
-        <input type="text" id="address" name="address" required>
-        <button type="submit">Find Store</button>
-    </form>
 
-    <div id="map" style="width: 100%; height: 500px;">{{ map|safe }}</div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    
+<body>
+    <input id="search-input" type="text" placeholder="주소를 입력하세요.">
+    <button id="search-button" type="button">검색</button>
+    <div id="map"> {{ map|safe }} </div>
+    <script>
+        var map = L.map('map').setView([37.5665, 126.9780], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        L.Control.geocoder({
+            defaultMarkGeocode: false,
+            collapsed: true
+        }).on('markgeocode', function(e) {
+            var latlng = e.geocode.center;
+            var name = e.geocode.name;
+            var marker = L.marker(latlng).addTo(map).bindPopup(name);
+            map.setView(latlng, 15);
+        }).addTo(map);
+
+        var searchControl = new L.Control.Search({
+            url: 'https://dapi.kakao.com/v2/local/search/address.json?query={s}',
+            jsonpParam: 'callback',
+            propertyName: 'documents',
+            propertyLoc: ['y', 'x'],
+            marker: L.marker([0, 0]),
+            autoCollapse: true,
+            minLength: 2,
+            zoom: 15,
+            textPlaceholder: '주소 검색',
+            textErr: '주소를 찾을 수 없습니다.',
+            textCancel: '취소',
+            textPlaceholder: '주소 검색',
+            filterJSON: function(json) {
+                var address = json.road_address_name || json.address_name || '';
+                return {
+                    'title': json.address_name,
+                    'address': address,
+                    'lat': json.y,
+                    'lng': json.x
+                };
+            },
+            moveToLocation: function(latlng, title, map) {
+                map.setView(latlng, 15);
+                L.marker(latlng).addTo(map).bindPopup(title).openPopup();
+            }
+        });
+
+        searchControl.addTo(map);
+    </script>
 </body>
+
 </html>
