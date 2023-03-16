@@ -15565,8 +15565,24 @@ def index():
     map = folium.Map(location=[37.5665, 126.9780], zoom_start=13, tiles="OpenStreetMap")
     folium.TileLayer('OpenStreetMap').add_to(map)
     marker_cluster = MarkerCluster().add_to(map)
-    search = Search(layer=marker_cluster).add_to(map)
 
+        # Get the user's search query
+    if request.method == 'POST':
+        search_query = request.form['search']
+
+        # Use Naver Maps Geocoding API to get the location coordinates
+        naver_client_id = '0qv1pkl5kk'
+        naver_client_secret = 'hpMQX1tKwTNJky9heiT4sxYVmJZ6SW1FgU232uUI'
+        headers = {'X-Naver-Client-Id': naver_client_id, 'X-Naver-Client-Secret': naver_client_secret}
+        url = f'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query={search_query}'
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            result = response.json()
+            if result['meta']['count'] > 0:
+                lat, lng = result['addresses'][0]['y'], result['addresses'][0]['x']
+                popup_text = f"<b>{search_query}</b>"
+                folium.Marker(location=(lat, lng), popup=folium.Popup(popup_text, max_width=250, max_height=100), icon=folium.Icon(color='red')).add_to(map)
+            
     for coord in coordinates:
         popup_text = f"<b>{coord[2]}</b><br>{coord[3]}<br>{coord[4]}<br>{coord[5]}"
         folium.Marker(location=(coord[0], coord[1]), popup=folium.Popup(popup_text, max_width=250, max_height=100)).add_to(marker_cluster)
