@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
         integrity="sha384-rHyoN1iRsVXV4nD+NXJ1ouKTn6hIcd6qlu33nYuWq2jrEyjlvB9FYQpBf1/8w2"
         crossorigin="anonymous">
-    {{ map.style }}
+    {{ mymap.style }}
 </head>
 
 <body>
@@ -36,41 +36,42 @@
             </div>
         </div>
     </nav>
-    <div id="map" style="width: 100%; height: 90vh;">{{ map|safe }} </div>
+    <div id="map" style="width: 100%; height: 90vh;">{{ mymap|safe }} </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
     integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
     crossorigin="anonymous"></script>
-{{ map.script }}
+{{ mymap.script }}
 <script>
-    $('#search-btn').click(function () {
-        var search = $('#search').val();
-        $.ajax({
-            url: 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=' + search,
-            type: 'GET',
-            headers: {
-                'X-NCP-APIGW-API-KEY-ID': '0qv1pkl5kk',
-                'X-NCP-APIGW-API-KEY': 'hpMQX1tKwTNJky9heiT4sxYVmJZ6SW1FgU232uUI'
+$('#search-btn').click(function () {
+    var search = $('#search').val();
+    console.log($('#search').val())
+    $.ajax({
+        url: 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=' + search,
+        type: 'GET',
+        headers: {
+            "X-NCP-APIGW-API-KEY-ID": "0qv1pkl5kk",
+            "X-NCP-APIGW-API-KEY": "hpMQX1tKwTNJky9heiT4sxYVmJZ6SW1FgU232uUI"
+                
             },
             dataType: 'json',
-            success: function (data) {
-                if (data['addresses'].length > 0) {
-                    var lat = data['addresses'][0]['y'];
-                    var lng = data['addresses'][0]['x'];
-                    var name = data['addresses'][0]['roadAddress'];
-                    var popup_text = '<b>' + name + '</b>';
-                    L.marker([lat, lng]).addTo(map).bindPopup(popup_text).openPopup();
-                    map.setView([lat, lng], 16);
-                } else {
-                    alert('No result found');
-                }
-            },
-            error: function () {
-                alert('Error occurred');
+        success: function (data) {
+            if (data['addresses'].length > 0) {
+                var lat = data['addresses'][0]['y'];
+                var lng = data['addresses'][0]['x'];
+                var name = data['addresses'][0]['roadAddress'];
+                var popup_text = '<b>' + name + '</b>';
+                L.marker([lat, lng]).addTo(myMap).bindPopup(popup_text)
+            } else {
+                alert('No results found.');
             }
-        });
+        },
+        error: function () {
+            alert('Error occurred while searching.');
+        }
     });
+});
 </script>
 </body>
 

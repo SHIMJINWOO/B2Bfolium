@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append(r'C:\Users\심진우\AppData\Local\Programs\Python\Python310\Lib\site-packages')
 from flask import Flask, request, render_template, jsonify
+from flask_cors import CORS
 import folium
 import requests
 from folium.plugins import MarkerCluster, Search
@@ -10,6 +11,7 @@ import math
 import json
 
 app = Flask(__name__)
+CORS(app)
 coordinates  = [('37.4707926', '126.7992077',"소사지사","(소사)이들","최근사용일: 23-03-08","주소: 경기 부천시 소사본동 292-98 이들"),
 ('37.3914737', '126.9534727',"평촌지사","(평촌)우루루범계점","최근사용일: 23-02-28","주소: 경기 안양시 동안구 호계동 1042 우루루 범계점"),
 ('37.5251977', '126.8562101',"양천본부","광명수산(신정4동)","최근사용일: 23-03-09","주소: 서울 양천구 신정동 917-21 광명수산"),
@@ -15562,9 +15564,9 @@ coordinates  = [('37.4707926', '126.7992077',"소사지사","(소사)이들","�
 @app.route('/')
 def index():
     # Create a map using Folium
-    map = folium.Map(location=[37.5665, 126.9780], zoom_start=13, tiles="OpenStreetMap")
-    folium.TileLayer('OpenStreetMap').add_to(map)
-    marker_cluster = MarkerCluster().add_to(map)
+    mymap = folium.Map(location=[37.5665, 126.9780], zoom_start=13, tiles="OpenStreetMap")
+    folium.TileLayer('OpenStreetMap').add_to(mymap)
+    marker_cluster = MarkerCluster().add_to(mymap)
 
         # Get the user's search query
     if request.method == 'POST':
@@ -15581,13 +15583,13 @@ def index():
             if result['meta']['count'] > 0:
                 lat, lng = result['addresses'][0]['y'], result['addresses'][0]['x']
                 popup_text = f"<b>{search_query}</b>"
-                folium.Marker(location=(lat, lng), popup=folium.Popup(popup_text, max_width=250, max_height=100), icon=folium.Icon(color='red')).add_to(map)
+                folium.Marker(location=(lat, lng), popup=folium.Popup(popup_text, max_width=250, max_height=100), icon=folium.Icon(color='red')).add_to(mymap)
             
     for coord in coordinates:
         popup_text = f"<b>{coord[2]}</b><br>{coord[3]}<br>{coord[4]}<br>{coord[5]}"
         folium.Marker(location=(coord[0], coord[1]), popup=folium.Popup(popup_text, max_width=250, max_height=100)).add_to(marker_cluster)
         
-    return render_template('index.html', map=map._repr_html_())    
+    return render_template('index.html', mymap=mymap._repr_html_())    
 
 if __name__ == '__main__':
     app.run(debug=True)
