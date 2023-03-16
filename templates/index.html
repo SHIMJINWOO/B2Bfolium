@@ -2,71 +2,76 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <title>Map Test</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {{ map.js }}
-    {{ map.css }}
-    <style>
-        #map {
-            width: 100%;
-            height: 600px;
-        }
-    </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='leaflet-search.min.css') }}" />
-    <script src="{{ url_for('static', filename='leaflet-search.min.js') }}"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Map</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+        integrity="sha384-rHyoN1iRsVXV4nD+NXJ1ouKTn6hIcd6qlu33nYuWq2jrEyjlvB9FYQpBf1/8w2"
+        crossorigin="anonymous">
+    {{ map.style }}
 </head>
 
 <body>
-    <input id="search-input" type="text" placeholder="주소를 입력하세요.">
-    <button id="search-button" type="button">검색</button>
-    <div id="map"> {{ map|safe }} </div>
-    <script>
-        var map = L.map('map').setView([37.5665, 126.9780], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
-        }).addTo(map);
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Map</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <form class="navbar-form navbar-left">
+                    <div class="form-group">
+                        <input type="text" id="search" placeholder="Search" class="form-control">
+                    </div>
+                    <button type="button" class="btn btn-default" id="search-btn">Submit</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div id="map" style="width: 100%; height: 90vh;">{{ map|safe }} </div>
 
-        L.Control.geocoder({
-            defaultMarkGeocode: false,
-            collapsed: true
-        }).on('markgeocode', function(e) {
-            var latlng = e.geocode.center;
-            var name = e.geocode.name;
-            var marker = L.marker(latlng).addTo(map).bindPopup(name);
-            map.setView(latlng, 15);
-        }).addTo(map);
-
-        var searchControl = new L.Control.Search({
-            url: 'https://dapi.kakao.com/v2/local/search/address.json?query={s}',
-            jsonpParam: 'callback',
-            propertyName: 'documents',
-            propertyLoc: ['y', 'x'],
-            marker: L.marker([0, 0]),
-            autoCollapse: true,
-            minLength: 2,
-            zoom: 15,
-            textPlaceholder: '주소 검색',
-            textErr: '주소를 찾을 수 없습니다.',
-            textCancel: '취소',
-            textPlaceholder: '주소 검색',
-            filterJSON: function(json) {
-                var address = json.road_address_name || json.address_name || '';
-                return {
-                    'title': json.address_name,
-                    'address': address,
-                    'lat': json.y,
-                    'lng': json.x
-                };
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+    crossorigin="anonymous"></script>
+{{ map.script }}
+<script>
+    $('#search-btn').click(function () {
+        var search = $('#search').val();
+        $.ajax({
+            url: 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=' + search,
+            type: 'GET',
+            headers: {
+                'X-NCP-APIGW-API-KEY-ID': '0qv1pkl5kk',
+                'X-NCP-APIGW-API-KEY': 'hpMQX1tKwTNJky9heiT4sxYVmJZ6SW1FgU232uUI'
             },
-            moveToLocation: function(latlng, title, map) {
-                map.setView(latlng, 15);
-                L.marker(latlng).addTo(map).bindPopup(title).openPopup();
+            dataType: 'json',
+            success: function (data) {
+                if (data['addresses'].length > 0) {
+                    var lat = data['addresses'][0]['y'];
+                    var lng = data['addresses'][0]['x'];
+                    var name = data['addresses'][0]['roadAddress'];
+                    var popup_text = '<b>' + name + '</b>';
+                    L.marker([lat, lng]).addTo(map).bindPopup(popup_text).openPopup();
+                    map.setView([lat, lng], 16);
+                } else {
+                    alert('No result found');
+                }
+            },
+            error: function () {
+                alert('Error occurred');
             }
         });
-
-        searchControl.addTo(map);
-    </script>
+    });
+</script>
 </body>
 
 </html>
