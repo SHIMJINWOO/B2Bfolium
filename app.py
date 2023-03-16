@@ -4,7 +4,7 @@ sys.path.append(r'C:\Users\심진우\AppData\Local\Programs\Python\Python310\Lib
 from flask import Flask, request, render_template, jsonify
 import folium
 import requests
-from folium.plugins import MarkerCluster
+from folium.plugins import MarkerCluster, Search
 import requests
 import math
 import json
@@ -15627,11 +15627,12 @@ def find_nearest_store(address, coordinates, max_distance_km=1):
 def index():
     # Create a map using Folium
     map = folium.Map(location=[37.5665, 126.9780], zoom_start=13, tiles="OpenStreetMap")
-    folium.TileLayer('Stamen Terrain').add_to(map)
+    folium.TileLayer('OpenStreetMap').add_to(map)
     marker_cluster = MarkerCluster().add_to(map)
+    search = Search(layer=marker_cluster).add_to(map)
 
     for coord in coordinates:
-        popup_text = f"<b>{coord[2]}</b><br>{coord[3]}<br>{coord[4]}"
+        popup_text = f"<b>{coord[2]}</b><br>{coord[3]}<br>{coord[4]}<br>{coord[5]}"
         folium.Marker(location=(coord[0], coord[1]), popup=folium.Popup(popup_text, max_width=250, max_height=100)).add_to(marker_cluster)
 
     return render_template('index.html', map=map._repr_html_())
@@ -15642,22 +15643,22 @@ def index():
 @app.route('/find_store', methods=['POST'])
 def find_store():
     address = request.form['address']
-    nearest_store, nearest_distance, user_coords = find_nearest_store(address, coordinates)
-
-    if nearest_store:
-        result = {
-            "success": True,
-            "store": nearest_store,
-            "distance": nearest_distance,
-            "user_coords": user_coords
-        }
+    client_id = '0qv1pkl5kk'
+    client_secret = 'hpMQX1tKwTNJky9heiT4sxYVmJZ6SW1FgU232uUI'
+    url = 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=' + address
+    headers = {
+    "X-NCP-APIGW-API-KEY-ID": client_id,
+    "X-NCP-APIGW-API-KEY": client_secret
+    }
+    response = requests.get(url, headers=headers).json()
+    if response['addresses']:
+        lat, lng = response['addresses'][0]['y'], response['addresses'][0]['x']
+        popup_text = f"<b>Search Location: </b>{address}"
+        folium.Marker(location=[lat, lng], popup=folium.Popup(popup_text, max_width=250, max_height=100, parse_html=True), icon=folium.Icon(color='red')).add_to(marker_cluster)
+        return jsonify({'result': 'success'})
     else:
-        result = {
-            "success": False,
-            "message": "No store within 1 km"
-        }
-
-    return jsonify(result)
+        return jsonify({'result': 'failed'})
+    return render_template('index.html', map=map._repr_html_())
 
 
 if __name__ == '__main__':

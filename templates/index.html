@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" integrity="sha512-d2Mwxpb1FvO1bDzZJNtHy5oqZ5p5+deV93ocldor9fl8rrqJAr67c6sd11ZzxnFnsQ8do16RtmxJEtTSoTgMg==" crossorigin=""/>
+
     <title>SpidorStoreMap</title>
 
 </head>
@@ -19,7 +21,7 @@
         <button type="submit">Find Store</button>
     </form>
 
-    <div id="map" style="width: 100%; height: 500px;">{{ map }}</div>
+    <div id="map" style="width: 100%; height: 500px;">{{ map|safe }}</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     
 </body>
