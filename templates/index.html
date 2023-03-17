@@ -8,14 +8,11 @@
         integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
         crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
-        integrity="sha384-rHyoN1iRsVXV4nD+NXJ1ouKTn6hIcd6qlu33nYuWq2jrEyjlvB9FYQpBf1/8w2"
+        integrity="sha384-TZRcqFdN2T0H2tDBr1fN2QFvVrKGWxTCpJkUtEo/EYgp0MbJmKb1X9dXKj5oJOkS"
         crossorigin="anonymous">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" integrity="sha512-QJlQHCh2jKk9xLz2EPmuLRvzM8WiuI0AGj1mcFm6c5v5yWFDUsj9OPucxQIleIMZvzlzZlL6jEXIwUfCK6y5ug==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
     {{ mymap.style }}
 </head>
-
 <body>
     <nav class="navbar navbar-default">
         <div class="container-fluid">
@@ -40,15 +37,17 @@
         </div>
     </nav>
     <div id="map" style="width: 100%; height: 90vh;">{{ mymap|safe }} </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+    {{ mymap.script }}
+    <script>
+    
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-    integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-    crossorigin="anonymous"></script>
-{{ mymap.script }}
-<script>
 $('#search-btn').click(function () {
     var search = $('#search').val();
+    var mymap = L.map('map').setView([37.5665, 126.9780], 13);
     console.log($('#search').val())
     $.ajax({
         url: 'https://dapi.kakao.com/v2/local/search/address.json?query=' + search,

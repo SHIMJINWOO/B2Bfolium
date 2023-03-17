@@ -2,16 +2,13 @@ import os
 import sys
 sys.path.append(r'C:\Users\심진우\AppData\Local\Programs\Python\Python310\Lib\site-packages')
 from flask import Flask, request, render_template, jsonify
-from flask_cors import CORS
 import folium
 import requests
 from folium.plugins import MarkerCluster, Search
 import requests
-import math
 import json
 
 app = Flask(__name__)
-CORS(app)
 coordinates  = [('37.4707926', '126.7992077',"소사지사","(소사)이들","최근사용일: 23-03-08","주소: 경기 부천시 소사본동 292-98 이들"),
 ('37.3914737', '126.9534727',"평촌지사","(평촌)우루루범계점","최근사용일: 23-02-28","주소: 경기 안양시 동안구 호계동 1042 우루루 범계점"),
 ('37.5251977', '126.8562101',"양천본부","광명수산(신정4동)","최근사용일: 23-03-09","주소: 서울 양천구 신정동 917-21 광명수산"),
@@ -15572,18 +15569,19 @@ def index():
     if request.method == 'POST':
         search_query = request.form['search']
 
-        # Use Naver Maps Geocoding API to get the location coordinates
-        naver_client_id = '0qv1pkl5kk'
-        naver_client_secret = 'hpMQX1tKwTNJky9heiT4sxYVmJZ6SW1FgU232uUI'
-        headers = {'X-Naver-Client-Id': naver_client_id, 'X-Naver-Client-Secret': naver_client_secret}
-        url = f'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query={search_query}'
+        kakao_api_key = '13e47c09a28f2ac521ceb8012746862f'
+        url = f'https://dapi.kakao.com/v2/local/search/address.json?query={search_query}'
+        headers = {'Authorization': f'KakaoAK {kakao_api_key}'}
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             result = response.json()
-            if result['meta']['count'] > 0:
-                lat, lng = result['addresses'][0]['y'], result['addresses'][0]['x']
+            if result['documents']:
+                # Get the latitude and longitude from the API response
+                lat, lng = result['documents'][0]['y'], result['documents'][0]['x']
+                # Mark the location on the map
                 popup_text = f"<b>{search_query}</b>"
                 folium.Marker(location=(lat, lng), popup=folium.Popup(popup_text, max_width=250, max_height=100), icon=folium.Icon(color='red')).add_to(mymap)
+
             
     for coord in coordinates:
         popup_text = f"<b>{coord[2]}</b><br>{coord[3]}<br>{coord[4]}<br>{coord[5]}"
