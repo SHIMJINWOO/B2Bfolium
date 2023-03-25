@@ -1,36 +1,4 @@
-from flask import Flask, request, render_template
-import folium
-from folium.plugins import MarkerCluster
-import requests
-
-app = Flask(__name__)
-mymap = folium.Map(location=[37.5665, 126.9780], zoom_start=13, tiles="OpenStreetMap")
-marker_cluster = MarkerCluster().add_to(mymap)
-@app.route('/', methods=['GET', 'POST'])
-def mapview():
-    # Create a map using Folium
-    global mymap
-    global marker_cluster
-    
-    if request.method == 'POST':
-        # Get the address from the form and convert it to geocode using the Google Maps API
-        address = request.form['address']
-        geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json'
-        params = {'address': address, 'key': 'AIzaSyChT1iA_vteiSWcoBG9u-QyJmboMmIVDzM'}
-        response = requests.get(geocode_url, params=params)
-        if response.status_code == 200:
-            data = response.json()
-            location = data['results'][0]['geometry']['location']
-            lat = location['lat']
-            lng = location['lng']
-            formatted_address = data['results'][0]['formatted_address']
-            
-            # Add a new marker for the searched address
-            popup_text = f"<b>{formatted_address}</b>"
-            folium.Marker(location=(lat, lng), icon=folium.Icon(color='red'), popup=folium.Popup(popup_text, max_width=250, max_height=100)).add_to(mymap)
-        
-    # Add markers for the coordinates in the list
-    coordinates  = [('37.4707926', '126.7992077',"소사지사","(소사)이들","최근사용일: 23-03-08","주소: 경기 부천시 소사본동 292-98 이들"),
+coordinates  = [('37.4707926', '126.7992077',"소사지사","(소사)이들","최근사용일: 23-03-08","주소: 경기 부천시 소사본동 292-98 이들"),
 ('37.3914737', '126.9534727',"평촌지사","(평촌)우루루범계점","최근사용일: 23-02-28","주소: 경기 안양시 동안구 호계동 1042 우루루 범계점"),
 ('37.5251977', '126.8562101',"양천본부","광명수산(신정4동)","최근사용일: 23-03-09","주소: 서울 양천구 신정동 917-21 광명수산"),
 ('37.5251427', '126.8589540',"양천본부","신전떡볶이(신정4동)","최근사용일: 23-03-08","주소: 서울 양천구 신정동 953-8 신전떡볶이 신정역점"),
@@ -15578,35 +15546,3 @@ def mapview():
 ('35.2412576', '128.6483870',"명곡반림점","(명서)봉팔이네찜닭","최근사용일: 23-03-09","주소: 경남 창원시 의창구 명서동 204-1 봉팔이네찜닭 창원점"),
 ('37.2850451', '126.8178105',"새솔지사","봉천동 진순자김밥","최근사용일: 23-03-08","주소: 경기 화성시 새솔동 76-6 봉천동진순자김밥 송산그린시티점")
 ]
-    for coord in coordinates:
-        popup_text = f"<b>{coord[2]}</b><br>{coord[3]}<br>{coord[4]}<br>{coord[5]}"
-        folium.Marker(location=(float(coord[0]), float(coord[1])), popup=folium.Popup(popup_text, max_width=250, max_height=100)).add_to(marker_cluster)
-        
-    return render_template('index.html', mymap=mymap._repr_html_())    
-
-@app.route('/search')
-def search():
-    global mymap
-    global marker_cluster
-    address = request.args.get('address')
-    naver_client_id = '0qv1pkl5kk'
-    naver_client_secret = 'hpMQX1tKwTNJky9heiT4sxYVmJZ6SW1FgU232uUI'
-    headers = {'X-NCP-APIGW-API-KEY-ID': naver_client_id, 'X-NCP-APIGW-API-KEY': naver_client_secret}
-    url = f'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query={address}'
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        location = response.json()['addresses'][0]
-        lat = float(location['y'])
-        lng = float(location['x'])
-        popup_text = f"<b>{location['roadAddress']}</b><br>{location['jibunAddress']}"
-        folium.Marker(location=[lat, lng], icon=folium.Icon(icon='star',color='red'), popup=folium.Popup(popup_text, max_width=250, max_height=100)).add_to(marker_cluster)
-        # Change the map center to the searched address location
-        mymap.location = [lat, lng]
-        mymap.zoom_start = 15
-    else:
-        print('Error: Unable to geocode address.')
-    # code to convert address to geocode
-    return render_template('index.html', mymap=mymap._repr_html_())
-
-if __name__ == '__main__':
-    app.run(debug=True)
