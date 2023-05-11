@@ -1,79 +1,59 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <head>
+    <meta charset="utf-8">
     <title>Map</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-        crossorigin="anonymous">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
-        integrity="sha384-rHyoN1iRsVXV4nD+NXJ1ouKTn6hIcd6qlu33nYuWq2jrEyjlvB9FYQpBf1/8w2"
-        crossorigin="anonymous">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" integrity="sha512-QJlQHCh2jKk9xLz2EPmuLRvzM8WiuI0AGj1mcFm6c5v5yWFDUsj9OPucxQIleIMZvzlzZlL6jEXIwUfCK6y5ug==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
-    {{ mymap.style }}
-</head>
-
-<body>
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                    data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#">Map</a>
-            </div>
-            <div id="navbar" class="navbar-collapse collapse">
-                <form class="navbar-form navbar-left">
-                    <div class="form-group">
-                        <input type="text" id="search" placeholder="Search" class="form-control">
-                    </div>
-                    <button type="button" class="btn btn-default" id="search-btn">Submit</button>
-                </form>
-            </div>
-        </div>
-    </nav>
-    <div id="map" style="width: 100%; height: 90vh;">{{ mymap|safe }} </div>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-    integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-    crossorigin="anonymous"></script>
-{{ mymap.script }}
-<script>
-$('#search-btn').click(function () {
-    var search = $('#search').val();
-    console.log($('#search').val())
+    {{mymap|safe}}
+    <style>
+      #search {
+        position: absolute;
+        z-index: 1000;
+        background-color: #fff;
+        padding: 5px;
+        border-radius: 5px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        font-size: 16px;
+        font-family: Arial, sans-serif;
+        width: 400px;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .leaflet-popup-content {
+        font-size: 14px;
+        max-width: 250px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="search">
+        <form method="POST" action="/">
+          <input type="text" id="address" name="address" placeholder="Enter address">
+          <button type="submit" id="submit">Search</button>
+        </form>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+$(function() {
+  $('form').submit(function(e) {
+    e.preventDefault();
+    var address = $('#address').val();
     $.ajax({
-        url: 'https://dapi.kakao.com/v2/local/search/address.json?query=' + search,
-    type: "GET",
-    headers: {
-        "Authorization": "KakaoAK 13e47c09a28f2ac521ceb8012746862f"
-    },
-    dataType: 'json',
-    success: function (data) {
-        if (data['documents'].length > 0) {
-            var lat = data['documents'][0]['y'];
-            var lng = data['documents'][0]['x'];
-            var name = data['documents'][0]['address_name'];
-            var popup_text = '<b>' + name + '</b>';
-            L.marker([lat, lng]).addTo(mymap).bindPopup(popup_text)
-        } else {
-            alert('No results found.');
-        }
-    },
-    error: function () {
-        alert('Error occurred while searching.');
-    }
+      url: '/search',
+      method: 'POST',
+      data: {'address': address},
+      success: function(response) {
+        $('#address').val('');
+        $('body').html(response);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.error('Error:', textStatus, errorThrown);
+      }
+    });
+  });
 });
-});
-</script>
-</body>
-
+    </script>
+  </body>
 </html>
